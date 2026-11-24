@@ -608,16 +608,11 @@ class simulation{
 		   }
 	   }
    }
-    
-    
-        
-        
-        
-        
-       void moveOrgs(){
+           void moveOrgs(){
             node* temp = p.head;
             while(temp){
                 if(!temp->data.alive){
+                	w.remove_organism(temp->data.x, temp->data.y);
                     temp = temp->next;
                     continue;
                 }
@@ -641,60 +636,39 @@ class simulation{
             if(factor < 1){
                 return false;
             }
-
-            int selectRandomly = rand() % 4;
-
-            if(selectRandomly == 0){
-                if(temp->data.energy >= factor && validatePathHorizontally(*x, *y + factor, temp) && isValidIndices(*x, *y + factor, temp)){
-                    *y += factor;
-                    temp->data.energy -= (2 * factor);
- 					if(temp->data.checkdeath()){
- 						removingdead();
-					 }
-                    return true;
-                }
-                else{
-                    selectRandomly++;
-                }
-            }
-            else if(selectRandomly == 1){
-                if(temp->data.energy >= factor && validatePathVertically(*x + factor, *y, temp) && isValidIndices(*x + factor, *y, temp)){
-                    *x += factor;
-                    temp->data.energy -= (2 * factor);
- 					if(temp->data.checkdeath()){
- 						removingdead();
-					 }
-                    return true;
-                }
-                else{
-                    selectRandomly++;
-                }
-            }
-            else if(selectRandomly == 2){
-                if(temp->data.energy >= factor && validatePathHorizontallyB(*x, *y - factor, temp) && isValidIndices(*x, *y - factor, temp)){
-                    *y -= factor;
- 					if(temp->data.checkdeath()){
- 						removingdead();
-					 }
-                    
-                    return true;
-                }
-                else{
-                    selectRandomly++;
-                }
-            }
-            else{
-                if(temp->data.energy >= factor && validatePathVerticallyB(*x - factor, *y, temp) && isValidIndices(*x - factor, *y, temp)){
-                    *x -= factor;
- 					temp->data.energy -= (2 * factor);
- 					if(temp->data.checkdeath()){
- 						removingdead();
-					 }
- 					
-                    return true;
-                }
-            }
-
+            
+			int dx[4] = {-1,0,1,0}; //col
+			int dy[4] = {0,1,0,-1}; //row
+			int randomIdx = rand() % 4;
+			
+			for(int i = 0; i < 4; i++){
+				if(temp->data.energy < 2 * factor){
+					return false;
+				} 
+				int k = (randomIdx + i) % 4;
+				int selectDx = dx[k] * factor + *x;
+				int selectDy = dy[k] * factor + *y;
+				
+				bool clear = false;
+				if(k == 0){
+					clear = up(selectDx, selectDy,temp);
+				} 
+				else if(k == 1){
+					clear = right(selectDx, selectDy,temp);
+				}
+				else if(k == 2){
+					clear = down(selectDx, selectDy,temp);
+				}
+				else{
+					clear = left(selectDx, selectDy,temp);	
+				}
+				if(clear && isValidIndices(selectDx, selectDy, temp)){
+					*x = selectDx;
+					*y = selectDy;
+					temp->data.energy -= 2 * factor;
+					return true;
+				}
+			}
             if(isSafe(x, y, factor - 1, temp)){
                 return true;
             }
@@ -717,7 +691,7 @@ class simulation{
             }
         }
 
-		bool validatePathHorizontally(int x, int y, node* temp){
+			bool right(int x, int y, node* temp){
             if(!w.isvalid(x, y)){
                 return false;
             }
@@ -729,7 +703,7 @@ class simulation{
             return true;
         }
 
-        bool validatePathHorizontallyB(int x, int y, node* temp){
+        bool left(int x, int y, node* temp){
             if(!w.isvalid(x, y)){
                 return false;
             }
@@ -741,7 +715,7 @@ class simulation{
             return true;
         }
 
-        bool validatePathVertically(int x, int y, node* temp){
+        bool down(int x, int y, node* temp){
             if(!w.isvalid(x, y)){
                 return false;
             }
@@ -753,7 +727,7 @@ class simulation{
             return true;
         }
 
-        bool validatePathVerticallyB(int x, int y, node* temp){
+        bool up(int x, int y, node* temp){
             if(!w.isvalid(x, y)){
                 return false;
             }
